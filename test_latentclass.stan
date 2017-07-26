@@ -8,7 +8,7 @@ data {
 
 parameters {
   vector[2] intercept; // enforce ordering to help identification
-  vector[2] slope;
+  ordered[2] slope;
   
   real u[nsub]; // random intercept per subject
   real<lower=0> sigma_u; // variance for random effect
@@ -26,9 +26,18 @@ transformed parameters {
   }
 }
 model {
+  intercept ~ normal(250, 10);
+  slope ~ normal(20, 5);
+  sigma_u ~ normal(30, 5);
+  sigma_e ~ normal(30, 5);
   u ~ normal(0, sigma_u);
   lambda ~ beta(1, 1);
   for (n in 1:N) {
-      target += log_mix(lambda[subject[n]], tmp_lpdf[n,1], tmp_lpdf[n,2]);
+    target += log_mix(lambda[subject[n]], tmp_lpdf[n,1], tmp_lpdf[n,2]);
   }
+}
+
+generated quantities {
+  real y_sim[N]; // simulated vals
+  // figure out group, then simulate from proper group
 }
