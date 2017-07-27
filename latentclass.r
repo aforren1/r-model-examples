@@ -52,7 +52,7 @@ ggplot(new_data, aes(x = Days, y = Reaction, colour = label, group = Subject)) +
 
 ## TODO: flexmix example (should be able to handle it?)
 flex_mod <- flexmix(. ~ .|Subject, k = 2, 
-               model = FLXMRlmm(Reaction ~ Days, random = ~1), 
+               model = FLXMRlmer(Reaction ~ Days, random = ~1), 
                data = new_data)
 
 xyplot(Reaction ~ Days | clusters(flex_mod), groups = Subject, data = new_data, type = 'l')
