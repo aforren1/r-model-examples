@@ -48,20 +48,20 @@ generated quantities {
 
   // figure out group membership
   for (i in 1:nsub) {
-      vector[2] tmp_lpdf;
+      vector[2] lpdf_per_sub;
       vector[2] prob;
       
-      tmp_lpdf[1] = 0;
-      tmp_lpdf[2] = 0;
+      lpdf_per_sub[1] = 0;
+      lpdf_per_sub[2] = 0;
 
       for (j in 1:nobs_sub[i]) {
-          tmp_lpdf[1] = tmp_lpdf[1] + normal_lpdf(y[n] | intercept[1] + u[i, 1] + slope[1] * x[n], sigma_e[1]);
-          tmp_lpdf[2] = tmp_lpdf[2] + normal_lpdf(y[n] | intercept[2] + u[i, 2] + slope[2] * x[n], sigma_e[2]);
+          lpdf_per_sub[1] = lpdf_per_sub[1] + normal_lpdf(y[n] | intercept[1] + u[i, 1] + slope[1] * x[n], sigma_e[1]);
+          lpdf_per_sub[2] = lpdf_per_sub[2] + normal_lpdf(y[n] | intercept[2] + u[i, 2] + slope[2] * x[n], sigma_e[2]);
           n = n + 1;
       }
-      tmp_lpdf[1] = tmp_lpdf[1] + log(lambda[i]);
-      tmp_lpdf[2] = tmp_lpdf[2] + log1m(lambda[i]);
-      prob = softmax(tmp_lpdf);
+      lpdf_per_sub[1] = lpdf_per_sub[1] + log(lambda[i]);
+      lpdf_per_sub[2] = lpdf_per_sub[2] + log1m(lambda[i]);
+      prob = softmax(lpdf_per_sub);
       sim_group[i] = bernoulli_rng(prob[1]);
   }
   n = 1;
