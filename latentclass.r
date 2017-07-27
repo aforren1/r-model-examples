@@ -10,7 +10,7 @@ s2 <- as.data.table(sleepstudy)
 
 s2[, subject_ind := 1:10, by = 'Subject']
 
-s2[, Reaction := Reaction + 40 * subject_ind] # make these subjects worse
+s2[, Reaction := Reaction + 20 * subject_ind] # make these subjects worse
 
 s2[, Reaction := Reaction + rnorm(.N, 0, 30)]
 s2[, Subject := as.factor(as.numeric(levels(Subject))[Subject] + 1000)]
