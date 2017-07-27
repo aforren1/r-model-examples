@@ -51,6 +51,9 @@ m_lme4 <- lmer(Reaction ~ Days + (1|Subject), data = sleepstudy)
 ggplot(new_data, aes(x = Days, y = Reaction, colour = label, group = Subject)) + geom_line()
 
 ## TODO: flexmix example (should be able to handle it?)
-flex_mod <- flexmix(Reaction ~ Days | Subject, data = new_data, k = 2)
+flex_mod <- flexmix(. ~ .|Subject, k = 2, 
+               model = FLXMRlmm(Reaction ~ Days, random = ~1), 
+               data = new_data)
+
 xyplot(Reaction ~ Days | clusters(flex_mod), groups = Subject, data = new_data, type = 'l')
 xyplot(colMeans(y_sim) ~ Days | round(stan_clusters), groups = Subject, data = new_data, type = 'l')
