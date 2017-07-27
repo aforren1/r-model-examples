@@ -2,6 +2,7 @@ data(sleepstudy, package = 'lme4')
 library(data.table)
 library(ggplot2)
 library(rstan)
+library(bayesplot)
 library(lme4)
 
 
@@ -21,12 +22,6 @@ s1[, label := 'nodrug']
 
 new_data <- rbind(s1, s2)
 
-unique_ids <- as.numeric(levels(new_data$Subject))
-for (ii in 1:length(unique_ids)) {
-    new_data$subject2[which(new_data$Subject == unique_ids[ii])] <- ii
-}
-
-
 data <- list(N = nrow(new_data),
              y = new_data$Reaction,
              x = new_data$Days,
@@ -39,7 +34,12 @@ fit <- sampling(mod, data = data,
                 chains = 3, cores = 3,
                 iter = 3000)
 
-print(fit, pars = c('intercept', 'slope', 'u', 'sigma_u', 'sigma_e', 'lambda'))
+print(fit, pars = c('intercept', 'slope', 'u', 'sigma_u', 'sigma_e'))
+
+print(fit, pars = c('lambda', 'sim_group')) # estimated group belongingship
+
+y_sim <- extract(fit, 'y_sim')[[1]]
+ppc_ribbon_grouped(new_data$Reaction, y_sim, x = new_data$Days, group = new_data$Subject)
 
 # half of our stan model should roughly match this
 m_lme4 <- lmer(Reaction ~ Days + (1|Subject), data = sleepstudy)
