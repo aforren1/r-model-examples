@@ -2,6 +2,7 @@ data(sleepstudy, package = 'lme4')
 library(data.table)
 library(ggplot2)
 library(rstan)
+library(lme4)
 
 
 s2 <- as.data.table(sleepstudy)
@@ -25,13 +26,12 @@ for (ii in 1:length(unique_ids)) {
     new_data$subject2[which(new_data$Subject == unique_ids[ii])] <- ii
 }
 
-ggplot(new_data, aes(x = Days, y = Reaction, colour = label, group = Subject)) + geom_line()
 
-data <- list(N = nrow(new_data), 
+data <- list(N = nrow(new_data),
              y = new_data$Reaction,
+             x = new_data$Days,
              nsub = length(levels(new_data$Subject)),
-             subject = new_data$subject2,
-             x = new_data$Days)
+             nobs_sub = c(new_data[,.N, by = Subject][,2])[[1]])
 
 mod <- stan_model('test_latentclass.stan')
 
@@ -41,3 +41,7 @@ fit <- sampling(mod, data = data,
 
 print(fit, pars = c('intercept', 'slope', 'u', 'sigma_u', 'sigma_e', 'lambda'))
 
+# half of our stan model should roughly match this
+m_lme4 <- lmer(Reaction ~ Days + (1|Subject), data = sleepstudy)
+
+ggplot(new_data, aes(x = Days, y = Reaction, colour = label, group = Subject)) + geom_line()

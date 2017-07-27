@@ -2,10 +2,12 @@ data {
   int<lower=0> N; // total number of observations
   real y[N]; // response
   int<lower=0> nsub; // number of subjects
-  int<lower=1, upper=nsub> subject[N];
+  int<lower=1> nobs_sub[nsub]; // number of observations per subject
   real x[N]; // continuous predictor
 }
 
+transformed data {
+}
 parameters {
   vector[2] intercept; // enforce ordering to help identification
   ordered[2] slope;
@@ -17,27 +19,30 @@ parameters {
 }
 
 transformed parameters {
-  vector[2] tmp_lpdf[N];
-  for (n in 1:N) {
-    tmp_lpdf[n, 1] = normal_lpdf(y[n] | intercept[1] + u[subject[n]] + slope[1] * x[n], 
-                                 sigma_e);
-    tmp_lpdf[n, 2] = normal_lpdf(y[n] | intercept[2] + u[subject[n]] + slope[2] * x[n],
-                                 sigma_e);
-  }
 }
 model {
+  int n = 1;
+  vector[2] tmp_lpdf[N];
   intercept ~ normal(250, 10);
   slope ~ normal(20, 5);
   sigma_u ~ normal(30, 5);
   sigma_e ~ normal(30, 5);
   u ~ normal(0, sigma_u);
   lambda ~ beta(1, 1);
-  for (n in 1:N) {
-    target += log_mix(lambda[subject[n]], tmp_lpdf[n,1], tmp_lpdf[n,2]);
+
+  for (a in 1:nsub) {
+      for (b in 1:nobs_sub[a]) {
+        tmp_lpdf[n, 1] = normal_lpdf(y[n] | intercept[1] + u[a] + slope[1] * x[n], 
+                                     sigma_e);
+        tmp_lpdf[n, 2] = normal_lpdf(y[n] | intercept[2] + u[a] + slope[2] * x[n],
+                                     sigma_e);
+        target += log_mix(lambda[a], tmp_lpdf[n, 1], tmp_lpdf[n, 2]);
+        n = n + 1;
+      }
   }
 }
 
 generated quantities {
-  real y_sim[N]; // simulated vals
+  //real y_sim[N]; // simulated vals
   // figure out group, then simulate from proper group
 }
