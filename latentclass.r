@@ -42,6 +42,9 @@ print(fit, pars = c('lambda', 'sim_group')) # estimated group belongingship
 y_sim <- extract(fit, 'y_sim')[[1]]
 ppc_ribbon_grouped(new_data$Reaction, y_sim, x = new_data$Days, group = new_data$Subject)
 
+group_sim <- extract(fit, 'sim_group')[[1]]
+stan_clusters <- rep(colMeans(group_sim), each = 10)
+
 # half of our stan model should roughly match this
 m_lme4 <- lmer(Reaction ~ Days + (1|Subject), data = sleepstudy)
 
@@ -49,4 +52,5 @@ ggplot(new_data, aes(x = Days, y = Reaction, colour = label, group = Subject)) +
 
 ## TODO: flexmix example (should be able to handle it?)
 flex_mod <- flexmix(Reaction ~ Days | Subject, data = new_data, k = 2)
-
+xyplot(Reaction ~ Days | clusters(flex_mod), groups = Subject, data = new_data, type = 'l')
+xyplot(colMeans(y_sim) ~ Days | round(stan_clusters), groups = Subject, data = new_data, type = 'l')
