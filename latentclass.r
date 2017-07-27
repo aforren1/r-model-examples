@@ -13,7 +13,7 @@ s2[, subject_ind := 1:10, by = 'Subject']
 
 s2[, Reaction := Reaction + 30 * subject_ind] # make these subjects worse
 
-s2[, Reaction := Reaction + rnorm(.N, 0, 30)]
+s2[, Reaction := Reaction + rnorm(.N, 0, 30)] # add noise to make these new subjects different
 s2[, Subject := as.factor(as.numeric(levels(Subject))[Subject] + 1000)]
 s2[, label := 'drug']
 s2$subject_ind <- NULL
@@ -45,8 +45,9 @@ ppc_ribbon_grouped(new_data$Reaction, y_sim, x = new_data$Days, group = new_data
 group_sim <- extract(fit, 'sim_group')[[1]]
 stan_clusters <- rep(colMeans(group_sim), each = 10)
 
-# half of our stan model should roughly match this
-m_lme4 <- lmer(Reaction ~ Days + (1|Subject), data = sleepstudy)
+# reference models (divide by known labels)
+lmer_1 <- lmer(Reaction ~ Days + (1|Subject), data = new_data[label == 'drug'])
+lmer_2 <- update(lmer_1, data = new_data[label == 'nodrug'])
 
 ggplot(new_data, aes(x = Days, y = Reaction, colour = label, group = Subject)) + geom_line()
 
