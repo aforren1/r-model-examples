@@ -12,7 +12,7 @@ parameters {
   
   real u[nsub]; // random intercept per subject
   real<lower=0> sigma_u; // variance for random effect
-  real<lower=0> sigma_e; // residual variance
+  vector<lower=0>[2] sigma_e; // residual variance
   real<lower=0, upper=1> lambda[nsub]; // soft ownership prob per subject
 }
 
@@ -28,8 +28,8 @@ model {
 
   for (a in 1:nsub) {
       for (b in 1:nobs_sub[a]) {
-        lpdf_parts[n, 1] = normal_lpdf(y[n] | intercept[1] + u[a] + slope[1] * x[n], sigma_e);
-        lpdf_parts[n, 2] = normal_lpdf(y[n] | intercept[2] + u[a] + slope[2] * x[n], sigma_e);
+        lpdf_parts[n, 1] = normal_lpdf(y[n] | intercept[1] + u[a] + slope[1] * x[n], sigma_e[1]);
+        lpdf_parts[n, 2] = normal_lpdf(y[n] | intercept[2] + u[a] + slope[2] * x[n], sigma_e[2]);
         target += log_mix(lambda[a], lpdf_parts[n, 1], lpdf_parts[n, 2]);
         n = n + 1;
       }
@@ -50,8 +50,8 @@ generated quantities {
       tmp_lpdf[2] = 0;
 
       for (j in 1:nobs_sub[i]) {
-          tmp_lpdf[1] = tmp_lpdf[1] + normal_lpdf(y[n] | intercept[1] + u[i] + slope[1] * x[n], sigma_e);
-          tmp_lpdf[2] = tmp_lpdf[2] + normal_lpdf(y[n] | intercept[2] + u[i] + slope[2] * x[n], sigma_e);
+          tmp_lpdf[1] = tmp_lpdf[1] + normal_lpdf(y[n] | intercept[1] + u[i] + slope[1] * x[n], sigma_e[1]);
+          tmp_lpdf[2] = tmp_lpdf[2] + normal_lpdf(y[n] | intercept[2] + u[i] + slope[2] * x[n], sigma_e[2]);
           n = n + 1;
       }
       tmp_lpdf[1] = tmp_lpdf[1] + log(lambda[i]);
@@ -64,9 +64,9 @@ generated quantities {
   for (i in 1:nsub) {
       for (j in 1:nobs_sub[i]) {
         if (sim_group[i] > 0) {
-          y_sim[n] = normal_rng(intercept[1] + u[i] + slope[1] * x[n], sigma_e);
+          y_sim[n] = normal_rng(intercept[1] + u[i] + slope[1] * x[n], sigma_e[1]);
         } else {
-          y_sim[n] = normal_rng(intercept[2] + u[i] + slope[2] * x[n], sigma_e);    
+          y_sim[n] = normal_rng(intercept[2] + u[i] + slope[2] * x[n], sigma_e[2]);    
         }
         n = n + 1;
       }

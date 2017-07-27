@@ -4,13 +4,14 @@ library(ggplot2)
 library(rstan)
 library(bayesplot)
 library(lme4)
+library(flexmix)
 
 
 s2 <- as.data.table(sleepstudy)
 
 s2[, subject_ind := 1:10, by = 'Subject']
 
-s2[, Reaction := Reaction + 20 * subject_ind] # make these subjects worse
+s2[, Reaction := Reaction + 30 * subject_ind] # make these subjects worse
 
 s2[, Reaction := Reaction + rnorm(.N, 0, 30)]
 s2[, Subject := as.factor(as.numeric(levels(Subject))[Subject] + 1000)]
@@ -45,3 +46,7 @@ ppc_ribbon_grouped(new_data$Reaction, y_sim, x = new_data$Days, group = new_data
 m_lme4 <- lmer(Reaction ~ Days + (1|Subject), data = sleepstudy)
 
 ggplot(new_data, aes(x = Days, y = Reaction, colour = label, group = Subject)) + geom_line()
+
+## TODO: flexmix example (should be able to handle it?)
+flex_mod <- flexmix(Reaction ~ Days | Subject, data = new_data, k = 2)
+
